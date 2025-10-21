@@ -12,4 +12,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-lock.yaml
 /.idea/
-src/assets/
+# Ignore assets folder to reduce upload size, but include the bg video required by the app
+src/assets/*
+!src/assets/bg.mp4
