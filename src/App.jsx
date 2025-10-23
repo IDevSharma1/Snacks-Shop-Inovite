@@ -48,76 +48,63 @@ function App() {
     setDirection(1);
   };
 
-  const getCircularVariants = () => {
-    const radius = 500;
-    
-    if (direction === 1) {
-      return {
-        initial: {
-          x: 0,
-          y: radius,
-          opacity: 0,
-          scale: 0.3,
-        },
-        animate: {
-          x: 0,
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          transition: {
-            type: "spring",
-            stiffness: 80,
-            damping: 20,
-            duration: 0.8
-          }
-        },
-        exit: {
-          x: 0,
-          y: -radius,
-          opacity: 0,
-          scale: 0.3,
-          transition: {
-            type: "spring",
-            stiffness: 80,
-            damping: 20,
-            duration: 0.8
-          }
-        }
-      };
-    } else {
-      return {
-        initial: {
-          x: radius,
-          y: 0,
-          opacity: 0,
-          scale: 0.3,
-        },
-        animate: {
-          x: 0,
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          transition: {
-            type: "spring",
-            stiffness: 80,
-            damping: 20,
-            duration: 0.8
-          }
-        },
-        exit: {
-          x: -radius,
-          y: 0,
-          opacity: 0,
-          scale: 0.3,
-          transition: {
-            type: "spring",
-            stiffness: 80,
-            damping: 20,
-            duration: 0.8
+  // Curved arc path: bottom scroller area → navbar top → final position
+  const getCurvedArcVariants = () => {
+    return {
+      initial: {
+        x: -400,  // Start from left side
+        y: 350,   // Start from BOTTOM (product scroller area)
+        opacity: 0,
+        scale: 0.3,
+        rotate: -15
+      },
+      animate: {
+        x: [
+          -400,  // Start: left side at scroller level
+          -250,  // Moving toward center
+          -100,  // Near navbar center
+          0,     // At navbar center area
+          0,     // Start descending
+          0      // Final position
+        ],
+        y: [
+          350,   // Start: BOTTOM at scroller area (first arrow end)
+          200,   // Rising from bottom
+          -50,   // Rising more
+          -200,  // Peak at navbar
+          -50,   // Descending
+          0      // Final center position
+        ],
+        opacity: [0, 0.3, 0.6, 0.8, 0.95, 1],
+        scale: [0.3, 0.5, 0.7, 0.85, 0.95, 1],
+        rotate: [-15, -10, -5, 0, 0, 0],
+        transition: {
+          duration: 2,
+          times: [0, 0.25, 0.45, 0.55, 0.75, 1],
+          ease: [0.65, 0, 0.35, 1],
+          x: {
+            ease: [0.65, 0, 0.35, 1],
+            duration: 2
+          },
+          y: {
+            ease: [0.33, 1, 0.68, 1],
+            duration: 2
           }
         }
-      };
-    }
+      },
+      exit: {
+        x: [0, 150, 300],
+        y: [0, -150, 350],
+        opacity: [1, 0.5, 0],
+        scale: [1, 0.7, 0.3],
+        rotate: [0, 10, 15],
+        transition: {
+          duration: 1.2,
+          times: [0, 0.5, 1],
+          ease: [0.65, 0, 0.35, 1]
+        }
+      }
+    };
   };
 
   const visibleProducts = dishes.slice(0, 6);
@@ -137,111 +124,127 @@ function App() {
         Your browser does not support the video tag.
       </video>
 
-      <div className="pointer-events-none fixed inset-0 bg-black/30 z-10" />
+      <div className="pointer-events-none fixed inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/40 z-10" />
 
       <div className="w-full min-h-screen flex flex-col relative z-20 overflow-x-hidden">
         <header className="sticky top-0 z-30 w-full left-0 right-0">
           <div
-            className="w-full flex items-center justify-between px-4 sm:px-6 md:px-8 min-h-[72px] backdrop-blur-md bg-white/20 border-b border-white/30"
+            className="w-full flex items-center justify-between px-6 sm:px-8 md:px-10 min-h-[70px] backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg"
             style={{
-              boxShadow: "0 2px 24px 0 rgba(80,80,120,0.07)",
-              border: "1px solid rgba(255,255,255,0.21)",
-              backgroundClip: "padding-box"
+              boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)"
             }}
           >
-            <div className="shrink-0 text-xl font-bold text-white">
+            <motion.div 
+              className="shrink-0 text-2xl font-bold text-white tracking-tight"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
               SnackShop
-            </div>
+            </motion.div>
 
             <nav className="mx-2 flex-1 hidden md:flex justify-center">
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 {categories.map((cat) => (
-                  <button
+                  <motion.button
                     key={cat.id}
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`px-3 py-1.5 rounded-full text-sm backdrop-blur-md transition
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`px-5 py-2.5 rounded-full text-sm font-medium backdrop-blur-xl transition-all duration-300
                       ${selectedCat === cat.id
-                        ? "bg-white/70 text-gray-900 ring-2 ring-fuchsia-400"
-                        : "bg-white/30 text-white hover:bg-white/50"}`}
-                    style={{ backgroundClip: "padding-box" }}
+                        ? "bg-white/80 text-gray-900 shadow-xl ring-2 ring-fuchsia-400"
+                        : "bg-white/20 text-white hover:bg-white/30 shadow-md"}`}
+                    style={{ 
+                      backdropFilter: "blur(20px)",
+                      WebkitBackdropFilter: "blur(20px)"
+                    }}
                     aria-pressed={selectedCat === cat.id}
                   >
-                    <span className="mr-1">{cat.icon}</span>{cat.name}
-                  </button>
+                    <span className="mr-2">{cat.icon}</span>{cat.name}
+                  </motion.button>
                 ))}
               </div>
             </nav>
 
-            <div className="shrink-0 flex items-center gap-2">
-              <button
-                className="p-2 rounded-full bg-white/20 text-white hover:bg-white/30"
+            <div className="shrink-0 flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2.5 rounded-full bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 shadow-lg transition-all"
                 aria-label="Search"
                 title="Search"
               >
                 🔍
-              </button>
-              <button
-                className="p-2 rounded-full bg-black text-white hover:bg-gray-800"
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="p-2.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:from-fuchsia-600 hover:to-pink-600 shadow-lg transition-all"
                 aria-label="Cart"
                 title="Cart"
               >
                 🛒
-              </button>
+              </motion.button>
             </div>
           </div>
 
-          <div className="w-full md:hidden px-4 py-2 bg-white/10 backdrop-blur-md">
+          <div className="w-full md:hidden px-4 py-3 bg-white/5 backdrop-blur-xl border-b border-white/10">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {categories.map((cat) => (
-                <button
+                <motion.button
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm backdrop-blur-md transition whitespace-nowrap
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-4 py-2 rounded-full text-sm font-medium backdrop-blur-xl transition-all whitespace-nowrap
                     ${selectedCat === cat.id
-                      ? "bg-white/70 text-gray-900 ring-2 ring-fuchsia-400"
-                      : "bg-white/30 text-white hover:bg-white/50"}`}
-                  style={{ backgroundClip: "padding-box" }}
+                      ? "bg-white/80 text-gray-900 ring-2 ring-fuchsia-400 shadow-lg"
+                      : "bg-white/20 text-white hover:bg-white/30"}`}
                   aria-pressed={selectedCat === cat.id}
                 >
-                  <span className="mr-1">{cat.icon}</span>{cat.name}
-                </button>
+                  <span className="mr-1.5">{cat.icon}</span>{cat.name}
+                </motion.button>
               ))}
             </div>
           </div>
         </header>
 
         <div className="flex flex-1 flex-col lg:flex-row w-full overflow-hidden">
-          <div className="flex-1 flex flex-col p-4 sm:p-6 w-full overflow-hidden">
-            <div className="flex flex-wrap lg:flex-nowrap items-center gap-x-8 lg:gap-x-16 gap-y-6 mb-6 w-full overflow-hidden">
+          <div className="flex-1 flex flex-col p-4 sm:p-5 w-full overflow-hidden">
+            <div className="flex flex-wrap lg:flex-nowrap items-center gap-x-8 lg:gap-x-12 gap-y-4 mb-4 w-full overflow-hidden">
               <div 
-                className="relative shrink-0 mx-auto lg:mx-0 overflow-hidden" 
-                style={{ width: 340, height: 340, maxWidth: '85vw', maxHeight: '85vw' }}
+                className="relative shrink-0 mx-auto lg:mx-0 overflow-visible" 
+                style={{ width: 360, height: 360, maxWidth: '85vw', maxHeight: '85vw' }}
               >
-                <AnimatePresence mode="wait" custom={direction}>
+                <AnimatePresence mode="wait">
                   <motion.div
                     key={`${selectedCat}-${mainIdx}`}
-                    custom={direction}
-                    variants={getCircularVariants()}
+                    variants={getCurvedArcVariants()}
                     initial="initial"
                     animate="animate"
                     exit="exit"
-                    className="absolute inset-0 rounded-full bg-white/30 backdrop-blur-xl flex items-center justify-center"
+                    className="absolute inset-0 rounded-full bg-white/15 backdrop-blur-2xl flex items-center justify-center border border-white/20"
                     style={{
-                      boxShadow: "0 8px 48px 0 rgba(0,0,0,0.18)",
-                      backgroundClip: "padding-box"
+                      boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 0 60px rgba(255, 255, 255, 0.1)",
+                      backdropFilter: "blur(40px)",
+                      WebkitBackdropFilter: "blur(40px)"
                     }}
                   >
                     {mainProduct?.image && (
-                      <img
+                      <motion.img
                         src={mainProduct.image}
                         alt={mainProduct.name}
                         className="rounded-full object-cover"
                         style={{
-                          width: 300,
-                          height: 300,
+                          width: 320,
+                          height: 320,
                           maxWidth: '75vw',
                           maxHeight: '75vw'
                         }}
+                        initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
+                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                        transition={{ delay: 0.5, duration: 0.7, type: "spring", stiffness: 100 }}
                       />
                     )}
                   </motion.div>
@@ -252,70 +255,85 @@ function App() {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`text-${selectedCat}-${mainIdx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 30 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
                   >
-                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 break-words">
+                    <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-3 break-words drop-shadow-lg">
                       {mainProduct?.name}
                       {mainProduct?.freshness && (
-                        <span className={`ml-2 px-2 py-1 text-xs rounded text-white ${
-                          mainProduct.freshness === "hot"
-                            ? "bg-red-400"
-                            : mainProduct.freshness === "fresh"
-                            ? "bg-green-400"
-                            : "bg-blue-400"
-                        }`}>
+                        <motion.span 
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
+                          className={`ml-3 px-3 py-1 text-xs font-semibold rounded-full text-white backdrop-blur-xl ${
+                            mainProduct.freshness === "hot"
+                              ? "bg-red-500/90"
+                              : mainProduct.freshness === "fresh"
+                              ? "bg-green-500/90"
+                              : "bg-blue-500/90"
+                          }`}
+                        >
                           {mainProduct.freshness}
-                        </span>
+                        </motion.span>
                       )}
                     </div>
                     {mainProduct?.description && (
-                      <div className="text-base sm:text-lg text-white/90 break-words">{mainProduct.description}</div>
+                      <div className="text-lg sm:text-xl text-white/95 break-words mb-4 leading-relaxed drop-shadow-md">{mainProduct.description}</div>
                     )}
-                    <div className="flex items-center gap-4 mt-2 flex-wrap">
+                    <div className="flex items-center gap-6 mt-3 flex-wrap">
                       {typeof mainProduct?.rating !== 'undefined' && (
-                        <span className="text-lg font-bold text-fuchsia-300">{mainProduct.rating} ★</span>
+                        <span className="text-xl font-bold text-yellow-300 drop-shadow-md">{mainProduct.rating} ★</span>
                       )}
                       {typeof mainProduct?.price !== 'undefined' && (
-                        <span className="font-bold text-white">₹{mainProduct.price}</span>
+                        <span className="text-2xl font-bold text-white drop-shadow-md">₹{mainProduct.price}</span>
                       )}
                     </div>
-                    <div className="flex gap-4 mt-4 flex-wrap">
-                      <button className="px-4 py-1 bg-white/20 rounded-full text-white hover:bg-white/30 text-sm whitespace-nowrap">
+                    <div className="flex gap-4 mt-6 flex-wrap">
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-6 py-2.5 bg-white/20 backdrop-blur-xl rounded-full text-white hover:bg-white/30 text-sm font-medium whitespace-nowrap shadow-lg transition-all border border-white/30"
+                      >
                         ▶ Play video
-                      </button>
-                      <button className="px-4 py-1 bg-black rounded-full text-white hover:bg-gray-800 text-sm whitespace-nowrap">
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-6 py-2.5 bg-gradient-to-r from-fuchsia-500 to-pink-500 rounded-full text-white hover:from-fuchsia-600 hover:to-pink-600 text-sm font-medium whitespace-nowrap shadow-lg transition-all"
+                      >
                         🛒 Order food
-                      </button>
+                      </motion.button>
                     </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
             </div>
 
-            <div className="w-full flex items-center gap-4 pb-4 overflow-hidden">
+            <div className="w-full flex items-center gap-3 pb-4 overflow-hidden mt-2">
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, x: -3 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handlePrev}
-                className="flex-shrink-0 p-3 rounded-full bg-white/30 backdrop-blur-md text-white hover:bg-white/50 transition"
-                style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.2)" }}
+                className="flex-shrink-0 p-2.5 rounded-full bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 transition-all border border-white/20"
+                style={{ boxShadow: "0 8px 20px rgba(0,0,0,0.3)" }}
                 aria-label="Previous product"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                 </svg>
               </motion.button>
 
-              <div className="flex-1 overflow-x-auto scrollbar-hide">
-                <div className="flex gap-4 sm:gap-6 justify-start">
+              <div className="flex-1 flex justify-center items-center">
+                <div className="grid grid-cols-6 gap-2 w-full max-w-[800px]">
                   {visibleProducts.map((dish, idx) => (
-                    <button
+                    <motion.button
                       key={idx}
-                      className={`flex flex-col items-center p-3 rounded-2xl cursor-pointer backdrop-blur-md bg-white/40
-                        transition flex-shrink-0 ${mainIdx === idx ? "ring-2 ring-fuchsia-400" : "hover:ring-2 hover:ring-fuchsia-200"}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`flex flex-col items-center p-2 rounded-xl cursor-pointer backdrop-blur-xl bg-white/15
+                        transition-all border ${mainIdx === idx ? "ring-2 ring-fuchsia-400 bg-white/25 shadow-xl" : "border-white/20 hover:bg-white/25 shadow-lg"}
                       `}
                       onClick={() => {
                         const diff = idx - mainIdx;
@@ -326,46 +344,49 @@ function App() {
                         }
                         setMainIdx(idx);
                       }}
-                      style={{ backgroundClip: "padding-box" }}
                     >
                       <img
                         src={dish.image}
                         alt={dish.name}
-                        className="w-16 h-16 rounded-xl object-cover mb-2"
+                        className="w-16 h-16 rounded-lg object-cover mb-1.5 shadow-md"
                       />
-                      <div className="text-xs font-bold text-white text-center w-24 break-words">{dish.name}</div>
-                      <div className="mt-1 font-bold text-white/90 whitespace-nowrap">₹{dish.price}</div>
-                    </button>
+                      <div className="text-[10px] font-bold text-white text-center w-full break-words leading-tight px-1">{dish.name}</div>
+                      <div className="mt-1 font-bold text-white whitespace-nowrap text-xs">₹{dish.price}</div>
+                    </motion.button>
                   ))}
                 </div>
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.1, x: 3 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleNext}
-                className="flex-shrink-0 p-3 rounded-full bg-white/30 backdrop-blur-md text-white hover:bg-white/50 transition"
-                style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.2)" }}
+                className="flex-shrink-0 p-2.5 rounded-full bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 transition-all border border-white/20"
+                style={{ boxShadow: "0 8px 20px rgba(0,0,0,0.3)" }}
                 aria-label="Next product"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.button>
             </div>
           </div>
 
-          <div className="w-full lg:w-96 flex flex-col items-center pt-6 lg:pt-10 px-4 pb-6">
-            <div
-              className="w-full max-w-[320px] rounded-3xl bg-white/20 backdrop-blur-md p-6 sm:p-8"
+          <div className="w-full lg:w-96 flex flex-col items-center pt-4 lg:pt-6 px-4 pb-6">
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="w-full max-w-[340px] rounded-3xl bg-white/10 backdrop-blur-2xl p-8 border border-white/20"
               style={{
-                boxShadow: "0 16px 32px 0 rgba(80,80,120,0.07)",
-                backgroundClip: "padding-box"
+                boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)"
               }}
             >
-              <div className="flex justify-between text-sm font-semibold mb-6">
-                <span className="text-white/80">Overview</span>
-                <span className="text-white/80">Ingredients</span>
+              <div className="flex justify-between text-sm font-semibold mb-8 border-b border-white/20 pb-4">
+                <span className="text-white/90 cursor-pointer hover:text-white transition-all">Overview</span>
+                <span className="text-white/60 cursor-pointer hover:text-white transition-all">Ingredients</span>
               </div>
               <AnimatePresence mode="wait">
                 <motion.div
@@ -373,21 +394,21 @@ function App() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
                 >
-                  <div className="flex items-center gap-4 mb-8">
+                  <div className="flex items-start gap-5 mb-8">
                     {typeof mainProduct?.rating !== 'undefined' && (
-                      <div className="text-4xl sm:text-5xl font-black text-fuchsia-300 shrink-0">{mainProduct.rating}★</div>
+                      <div className="text-5xl sm:text-6xl font-black text-yellow-300 shrink-0 drop-shadow-lg">{mainProduct.rating}★</div>
                     )}
                     <div className="min-w-0 flex-1">
                       {mainProduct?.name && (
-                        <div className="font-semibold text-base sm:text-lg text-white break-words">{mainProduct.name}</div>
+                        <div className="font-bold text-lg sm:text-xl text-white break-words mb-2">{mainProduct.name}</div>
                       )}
                       {mainProduct?.description && (
-                        <div className="text-xs text-white/80 break-words">{mainProduct.description}</div>
+                        <div className="text-sm text-white/80 break-words leading-relaxed">{mainProduct.description}</div>
                       )}
                       {typeof mainProduct?.price !== 'undefined' && (
-                        <div className="font-bold text-white mt-2">₹{mainProduct.price}</div>
+                        <div className="font-bold text-white mt-3 text-lg">₹{mainProduct.price}</div>
                       )}
                     </div>
                   </div>
@@ -396,25 +417,25 @@ function App() {
 
               <div className="flex items-center justify-center gap-4 flex-wrap">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 rounded-full bg-white/70 text-gray-900 hover:bg-white text-sm whitespace-nowrap"
+                  className="px-6 py-2.5 rounded-full bg-white/80 text-gray-900 hover:bg-white text-sm font-medium whitespace-nowrap shadow-lg transition-all"
                   aria-label="Like this product"
                   title="Like"
                 >
                   👍 Like
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 rounded-full bg-white/30 text-white hover:bg-white/50 text-sm whitespace-nowrap"
+                  className="px-6 py-2.5 rounded-full bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 text-sm font-medium whitespace-nowrap shadow-lg transition-all border border-white/30"
                   aria-label="Dislike this product"
                   title="Dislike"
                 >
                   👎 Dislike
                 </motion.button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -423,6 +444,3 @@ function App() {
 }
 
 export default App;
-
-
-
