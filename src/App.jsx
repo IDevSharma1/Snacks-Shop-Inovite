@@ -49,63 +49,91 @@ function App() {
   };
 
   // Curved arc path: bottom scroller area → navbar top → final position
-  const getCurvedArcVariants = () => {
-    return {
-      initial: {
-        x: -400,  // Start from left side
-        y: 350,   // Start from BOTTOM (product scroller area)
-        opacity: 0,
-        scale: 0.3,
-        rotate: -15
-      },
-      animate: {
-        x: [
-          -400,  // Start: left side at scroller level
-          -250,  // Moving toward center
-          -100,  // Near navbar center
-          0,     // At navbar center area
-          0,     // Start descending
-          0      // Final position
-        ],
-        y: [
-          350,   // Start: BOTTOM at scroller area (first arrow end)
-          200,   // Rising from bottom
-          -50,   // Rising more
-          -200,  // Peak at navbar
-          -50,   // Descending
-          0      // Final center position
-        ],
-        opacity: [0, 0.3, 0.6, 0.8, 0.95, 1],
-        scale: [0.3, 0.5, 0.7, 0.85, 0.95, 1],
-        rotate: [-15, -10, -5, 0, 0, 0],
-        transition: {
-          duration: 2,
-          times: [0, 0.25, 0.45, 0.55, 0.75, 1],
-          ease: [0.65, 0, 0.35, 1],
-          x: {
-            ease: [0.65, 0, 0.35, 1],
-            duration: 2
-          },
-          y: {
-            ease: [0.33, 1, 0.68, 1],
-            duration: 2
-          }
-        }
-      },
-      exit: {
-        x: [0, 150, 300],
-        y: [0, -150, 350],
-        opacity: [1, 0.5, 0],
-        scale: [1, 0.7, 0.3],
-        rotate: [0, 10, 15],
-        transition: {
-          duration: 1.2,
-          times: [0, 0.5, 1],
-          ease: [0.65, 0, 0.35, 1]
-        }
-      }
-    };
+  // Curved arc path: bottom scroller area → navbar top → final position
+const getCurvedArcVariants = () => {
+  // Control points (adjust if you need to fine-tune the arc height/width)
+  const P0 = { x: -400, y: 350 };   // start
+  const P1 = { x: 0,    y: -180 };  // peak (navbar center)
+  const P2 = { x: 0,    y: 0 };     // end
+
+  // Sample a smooth quadratic Bezier with one global easing
+  const samples = 9; // more samples = smoother curve
+  const xs = [];
+  const ys = [];
+  const scales = [];
+  const opacities = [];
+  const rotates = [];
+  const times = [];
+
+  // cubic-bezier(0.22, 1, 0.36, 1)
+  const easeBezier = (x1, y1, x2, y2, x) => {
+    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+    const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+    let u = x;
+    for (let i = 0; i < 5; i++) {
+      const xEval = ((ax * u + bx) * u + cx) * u - x;
+      const dEval = (3 * ax * u + 2 * bx) * u + cx;
+      if (Math.abs(xEval) < 1e-4) break;
+      u -= xEval / dEval;
+    }
+    return ((ay * u + by) * u + cy) * u;
   };
+
+  const quad = (p0, p1, p2, t) => {
+    const u = 1 - t;
+    return u*u*p0 + 2*u*t*p1 + t*t*p2;
+  };
+
+  for (let i = 0; i <= samples; i++) {
+    const rawT = i / samples;
+    const t = easeBezier(0.22, 1, 0.36, 1, rawT); // one global ease
+
+    xs.push(quad(P0.x, P1.x, P2.x, t));
+    ys.push(quad(P0.y, P1.y, P2.y, t));
+
+    // Progressive transforms bound to the same t
+    opacities.push(0 + t * 1);               // 0 → 1
+    scales.push(0.3 + t * (1 - 0.3));        // 0.3 → 1
+    rotates.push(-10 * (1 - Math.min(t * 1.4, 1))); // -10° → 0° faster early
+
+    times.push(rawT); // keyframe times uniformly 0..1
+  }
+
+  return {
+    initial: {
+      x: xs[0],
+      y: ys[0],
+      opacity: 0,
+      scale: 0.3,
+      rotate: -10
+    },
+    animate: {
+      x: xs,
+      y: ys,
+      opacity: opacities,
+      scale: scales,
+      rotate: rotates,
+      transition: {
+        duration: 2.0,
+        times,
+        ease: "linear" // already eased in samples; keep linear here to avoid wobble
+      }
+    },
+    exit: {
+      x: [xs[xs.length - 1], xs[xs.length - 1] + 200, xs[xs.length - 1] + 300],
+      y: [ys[ys.length - 1], ys[ys.length - 1] - 120, 350],
+      opacity: [1, 0.5, 0],
+      scale: [1, 0.7, 0.3],
+      rotate: [0, 8, 12],
+      transition: {
+        duration: 1.2,
+        times: [0, 0.5, 1],
+        ease: [0.65, 0, 0.35, 1]
+      }
+    }
+  };
+};
+
 
   const visibleProducts = dishes.slice(0, 6);
 
@@ -287,7 +315,7 @@ function App() {
                         <span className="text-xl font-bold text-yellow-300 drop-shadow-md">{mainProduct.rating} ★</span>
                       )}
                       {typeof mainProduct?.price !== 'undefined' && (
-                        <span className="text-2xl font-bold text-white drop-shadow-md">₹{mainProduct.price}</span>
+                        <span className="text-2xl font-bold text-white drop-shadow-md">${mainProduct.price}</span>
                       )}
                     </div>
                     <div className="flex gap-4 mt-6 flex-wrap">
@@ -351,7 +379,7 @@ function App() {
                         className="w-16 h-16 rounded-lg object-cover mb-1.5 shadow-md"
                       />
                       <div className="text-[10px] font-bold text-white text-center w-full break-words leading-tight px-1">{dish.name}</div>
-                      <div className="mt-1 font-bold text-white whitespace-nowrap text-xs">₹{dish.price}</div>
+                      <div className="mt-1 font-bold text-white whitespace-nowrap text-xs">${dish.price}</div>
                     </motion.button>
                   ))}
                 </div>
@@ -408,7 +436,7 @@ function App() {
                         <div className="text-sm text-white/80 break-words leading-relaxed">{mainProduct.description}</div>
                       )}
                       {typeof mainProduct?.price !== 'undefined' && (
-                        <div className="font-bold text-white mt-3 text-lg">₹{mainProduct.price}</div>
+                        <div className="font-bold text-white mt-3 text-lg">${mainProduct.price}</div>
                       )}
                     </div>
                   </div>
