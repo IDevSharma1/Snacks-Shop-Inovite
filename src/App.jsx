@@ -116,7 +116,7 @@ const getCurvedArcVariants = () => {
       transition: {
         duration: 2.0,
         times,
-        ease: "linear" // already eased in samples; keep linear here to avoid wobble
+        ease: "easeInOut" // already eased in samples; keep linear here to avoid wobble
       }
     },
     exit: {
