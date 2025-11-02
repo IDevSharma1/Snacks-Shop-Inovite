@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Sidebar({ mainProduct }) {
   return (
-    <div className="w-full lg:w-96">
-  <div className="lg:sticky lg:top-4">
+    <div className="w-full lg:w-[22rem] shrink-0 overflow-x-hidden">
+      <div className="lg:sticky lg:top-4">
     <motion.div
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}

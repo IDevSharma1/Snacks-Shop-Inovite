@@ -1,4 +1,3 @@
-// src/components/MainProduct.jsx
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "./CartContext";
@@ -23,7 +22,7 @@ function getCurvedArcVariants() {
   };
   const quad = (p0, p1, p2, t) => {
     const u = 1 - t;
-    return u*u*p0 + 2*u*t*p1 + t*t*p2;
+    return u * u * p0 + 2 * u * t * p1 + t * t * p2;
   };
   for (let i = 0; i <= samples; i++) {
     const rawT = i / samples;
@@ -38,38 +37,56 @@ function getCurvedArcVariants() {
   return {
     initial: { x: xs[0], y: ys[0], opacity: 0, scale: 0.3, rotate: -10 },
     animate: {
-      x: xs, y: ys, opacity: opacities, scale: scales, rotate: rotates,
-      transition: { duration: 2.0, times, ease: "easeInOut" }
+      x: xs,
+      y: ys,
+      opacity: opacities,
+      scale: scales,
+      rotate: rotates,
+      transition: { duration: 2.0, times, ease: "easeInOut" },
     },
     exit: {
-      x: [xs[xs.length-1], xs[xs.length-1]+200, xs[xs.length-1]+300],
-      y: [ys[ys.length-1], ys[ys.length-1]-120, 350],
-      opacity: [1, 0.5, 0], scale: [1, 0.7, 0.3], rotate: [0, 8, 12],
-      transition: { duration: 1.2, times: [0, .5, 1], ease: [0.65, 0, 0.35, 1] }
-    }
+      x: [xs[xs.length - 1], xs[xs.length - 1] + 200, xs[xs.length - 1] + 300],
+      y: [ys[ys.length - 1], ys[ys.length - 1] - 120, 350],
+      opacity: [1, 0.5, 0],
+      scale: [1, 0.7, 0.3],
+      rotate: [0, 8, 12],
+      transition: {
+        duration: 1.2,
+        times: [0, 0.5, 1],
+        ease: [0.65, 0, 0.35, 1],
+      },
+    },
   };
 }
 
-export default function MainProduct({ mainProduct, handlePrev, handleNext, reduceMotion = false }) {
+export default function MainProduct({
+  mainProduct,
+  handlePrev,
+  handleNext,
+  reduceMotion = false,
+}) {
   const { addItem } = useCart();
 
   const handleOrder = () => {
     if (!mainProduct) return;
-    const id = mainProduct.id ?? mainProduct.name ?? Math.random().toString(36).slice(2);
+    const id =
+      mainProduct.id ?? mainProduct.name ?? Math.random().toString(36).slice(2);
     addItem({
       id,
       title: mainProduct.name ?? "Snack",
       price: mainProduct.price ?? 0,
       qty: 1,
-      image: mainProduct.image
+      image: mainProduct.image,
     });
   };
 
-  const curvedVariants = reduceMotion ? {
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, scale: 0.95 }
-  } : getCurvedArcVariants();
+  const curvedVariants = reduceMotion
+    ? {
+        initial: { opacity: 0, scale: 0.95 },
+        animate: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+        exit: { opacity: 0, scale: 0.95 },
+      }
+    : getCurvedArcVariants();
 
   return (
     <div className="flex flex-wrap lg:flex-nowrap items-center gap-x-8 lg:gap-x-12 gap-y-4 mb-4 w-full overflow-hidden">

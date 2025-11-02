@@ -25,7 +25,7 @@ const cardShuffleVariants = {
       damping: 15,
     },
   }),
-  hover: { scale: 1.06, y: -6, transition: { duration: 0.2 } },
+  hover: { scale: 1.05, y: -4, transition: { duration: 0.2 } },
 };
 
 export default function ProductGrid({
@@ -40,20 +40,22 @@ export default function ProductGrid({
   const { addItem } = useCart();
 
   return (
-    <div className="w-full flex flex-col items-center pb-6 sm:pb-8 px-3 sm:px-4">
-      <div className="w-full mb-1.5 mx-auto">
-        <h2 className="text-xl sm:text-2xl font-bold text-white mb-1.5 tracking-tight">
-          {title}
-        </h2>
-      </div>
+    <div className="w-full flex flex-col items-center pb-6 sm:pb-8 px-2 sm:px-3 lg:px-4 xl:px-6">
+  <div className="w-full mb-2 mx-auto">
+    <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">
+      {title}
+    </h2>
+  </div>
 
-      <div
-        className="
-      grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4
-      gap-x-8 gap-y-10 sm:gap-x-10 sm:gap-y-12 lg:gap-x-12 lg:gap-y-14
-      px-2 sm:px-4 lg:px-6 py-6 w-full
+  <div
+    className="
+      grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4
+      gap-x-6 gap-y-8 sm:gap-x-8 sm:gap-y-10 lg:gap-x-10 lg:gap-y-12
+      w-full max-w-[92rem] mx-auto
+      px-0 sm:px-2 lg:px-3 py-4
     "
-      >
+  >
+
         <AnimatePresence>
           {products.map((dish, idx) => (
             <motion.div
@@ -63,12 +65,12 @@ export default function ProductGrid({
               initial={idx >= 6 ? "hidden" : false}
               animate="visible"
               whileHover="hover"
-              className={`relative rounded-2xl overflow-hidden bg-white/10 transition-all border aspect-square
-                p-3 sm:p-4
+              className={`relative rounded-xl overflow-hidden bg-white/10 transition-all border
+                aspect-[1/1.1] p-2 sm:p-3
                 ${
                   mainIdx === idx
-                    ? "ring-2 ring-fuchsia-400 bg-white/20 shadow-xl border-white/30"
-                    : "border-white/15 hover:bg-white/15 hover:border-white/25 shadow-lg"
+                    ? "ring-2 ring-fuchsia-400 bg-white/20 shadow-lg border-white/40"
+                    : "border-white/20 hover:bg-white/15 hover:border-white/30 shadow-md"
                 }`}
               onClick={() => {
                 const diff = idx - mainIdx;
@@ -77,21 +79,21 @@ export default function ProductGrid({
                 setMainIdx(idx);
               }}
             >
-              <div className="w-full h-full relative rounded-xl overflow-hidden">
+              <div className="w-full h-full relative rounded-lg overflow-hidden">
                 <img
                   src={dish.image}
                   alt={dish.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover scale-105 hover:scale-110 transition-transform duration-300 rounded-lg"
                 />
                 <div className="absolute inset-x-0 bottom-0">
-                  <div className="mx-0.5 mb-0.5 rounded-md bg-black/35 backdrop-blur-sm px-2 py-1">
+                  <div className="mx-1 mb-1 rounded-md bg-black/40 backdrop-blur-sm px-2 py-1.5">
                     <div className="text-[11px] sm:text-xs font-semibold text-white text-center truncate">
                       {dish.name}
                     </div>
                   </div>
                 </div>
 
-                {/* Quick add button (does not stop selecting on card click) */}
+                {/* Quick add button */}
                 <button
                   type="button"
                   onClick={(e) => {
@@ -102,10 +104,10 @@ export default function ProductGrid({
                       title: dish.name ?? "Snack",
                       price: dish.price ?? 0,
                       qty: 1,
-                      image: dish.image
+                      image: dish.image,
                     });
                   }}
-                  className="absolute top-2 right-2 rounded-full border border-white/30 bg-white/20 hover:bg-white/30 text-white backdrop-blur-xl px-3 py-1 text-xs font-semibold shadow"
+                  className="absolute top-2.5 right-2.5 rounded-full border border-white/40 bg-white/20 hover:bg-white/30 text-white backdrop-blur-xl px-3 py-1 text-xs font-semibold shadow-sm"
                 >
                   + Add
                 </button>
@@ -118,11 +120,11 @@ export default function ProductGrid({
       {isLoading && (
         <div className="mt-4 text-white text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-          <p className="mt-2">Loading more snacks...</p>
+          <p className="mt-2 text-sm">Loading more snacks...</p>
         </div>
       )}
       {canLoadMore && !isLoading && (
-        <div className="mt-6 text-white/80 text-center">
+        <div className="mt-5 text-white/80 text-center">
           <p className="text-sm">Scroll down to see more delicious items! 🍽️</p>
         </div>
       )}

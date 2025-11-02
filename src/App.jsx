@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { datasets } from "./data/products";
