@@ -1,23 +1,77 @@
 import React, { useEffect, useRef, useState } from "react";
 
+const API = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+
+// simple debounce
+function useDebouncedValue(value, delay=300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function SearchModal({ open, onClose, onSelect }) {
   const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]); // [{_id, name, price, imageURL}]
+  const [error, setError] = useState("");
   const ref = useRef(null);
+
+  const qDebounced = useDebouncedValue(q, 300);
 
   useEffect(() => {
     if (open) {
       setTimeout(() => ref.current?.focus(), 50);
     } else {
       setQ("");
+      setResults([]);
+      setError("");
+      setLoading(false);
     }
   }, [open]);
 
-  const results = q
-    ? [
-        { id: "burger", title: "Cheesy Burger", price: 8.49 },
-        { id: "fries", title: "Crispy Fries", price: 3.99 },
-      ].filter((x) => x.title.toLowerCase().includes(q.toLowerCase()))
-    : [];
+  // fetch results from backend across all categories
+  useEffect(() => {
+    let abort = false;
+    async function run() {
+      if (!open) return;
+      if (!qDebounced?.trim()) {
+        setResults([]);
+        setError("");
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError("");
+      try {
+        const qs = new URLSearchParams();
+        qs.set("q", qDebounced.trim());
+        // return plenty so user sees all matches
+        qs.set("page", "1");
+        qs.set("limit", "50");
+        const res = await fetch(`${API}/products?${qs.toString()}`);
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        if (!abort) {
+          setResults((data.items || []).map(p => ({
+            id: p._id,
+            title: p.name,
+            price: p.price,
+            image: p.imageURL,
+            raw: p
+          })));
+        }
+      } catch (e) {
+        if (!abort) setError("Failed to search");
+      } finally {
+        if (!abort) setLoading(false);
+      }
+    }
+    run();
+    return () => { abort = true; };
+  }, [qDebounced, open]);
 
   if (!open) return null;
 
@@ -40,20 +94,29 @@ export default function SearchModal({ open, onClose, onSelect }) {
         </div>
 
         <ul className="mt-3 max-h-80 overflow-y-auto">
-          {results.map((r) => (
+          {loading && <li className="px-3 py-3 text-white/70">Searching…</li>}
+          {!loading && error && <li className="px-3 py-3 text-rose-300">{error}</li>}
+
+          {!loading && !error && results.map((r) => (
             <li key={r.id}>
               <button
                 onClick={() => {
-                  onSelect?.(r);
+                  // hand back full item so home can render it as main product
+                  onSelect?.(r.raw);
                   onClose();
                 }}
-                className="w-full text-left px-3 py-2 rounded-xl text-white/90 hover:text-white bg-white/5 hover:bg-white/15 border border-white/10 transition-all"
+                className="w-full text-left px-3 py-2 rounded-xl text-white/90 hover:text-white bg-white/5 hover:bg-white/15 border border-white/10 transition-all flex items-center gap-3"
               >
-                {r.title} • ${r.price.toFixed(2)}
+                {r.image && (
+                  <img src={r.image} alt={r.title} className="h-8 w-8 rounded-md object-cover" />
+                )}
+                <span className="flex-1 truncate">{r.title}</span>
+                <span className="shrink-0">${Number(r.price || 0).toFixed(2)}</span>
               </button>
             </li>
           ))}
-          {q && results.length === 0 && (
+
+          {q && !loading && !error && results.length === 0 && (
             <li className="px-3 py-3 text-white/70">No results</li>
           )}
         </ul>
