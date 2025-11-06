@@ -3,7 +3,7 @@ import { useAuth } from "../AuthContext";
 import { motion } from "framer-motion";
 import bgVideo from "../assets/bg.webm";
 
-const API = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+const API = (import.meta?.env?.VITE_API_BASE) || "http://localhost:5000/api";
 
 export default function Admin() {
   const { token, user } = useAuth();

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-const API = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+const API = (import.meta?.env?.VITE_API_BASE) || "http://localhost:5000/api";
 
 // simple debounce
 function useDebouncedValue(value, delay=300) {
