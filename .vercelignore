@@ -14,4 +14,5 @@ pnpm-lock.yaml
 /.idea/
 # Ignore assets folder to reduce upload size, but include the bg video required by the app
 src/assets/*
+!src/assets/bg.webm
 !src/assets/bg.mp4
